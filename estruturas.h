@@ -41,8 +41,46 @@ typedef struct {
     int algoritmo;        // 0=FIFO , 1=LRU , 2= CLOCK , 3= RANDOM , 4= CUSTOM
 } Simulador;
 
+// Inicialização
 Simulador *inicializar_simulador(int tamanho_pagina, int tamanho_memoria_fisica, int algoritmo);
 Processo *criar_processo(Simulador *sim, int tamanho_processo, int pid);
-void exibir_memoria_fisica(Simulador *sim);
+
+
+//Tradução de Endereços
+// Traduz um endereço virtual para físico
+// Retorna o endereço físico ou -1 em caso de page fault
+int traduzir_endereco(Simulador *sim, int pid, int endereco_virtual);
+
+// Extrai o número da página e o deslocamento de um endereço virtual
+void extrair_pagina_deslocamento ( Simulador *sim, int endereco_virtual, int *pagina ,int *deslocamento);
+
+//Manipulação de Memória
+// Verifica se uma página está presente na memória física
+int verificar_pagina_presente (Simulador *sim, int pid, int pagina);
+// Carrega uma página na memória física
+// Retorna o número do frame onde a página foi carregada
+int carregar_pagina ( Simulador *sim, int pid, int pagina);
+// Implementa o algoritmo de substituição de páginas FIFO
+int substituir_pagina_fifo (Simulador *sim);
+// Implementa o algoritmo de substituição de páginas LRU
+int substituir_pagina_lru (Simulador *sim);
+// Implementa o algoritmo de substituição de páginas CLOCK
+int substituir_pagina_clock (Simulador *sim);
+// Implementa o algoritmo de substituição de páginas RANDOM
+int substituir_pagina_random (Simulador *sim);
+
+//Estatísticas e Visualização
+// Exibe o estado atual da memória física
+void exibir_memoria_fisica (Simulador *sim);
+// Exibe estatísticas da simulação
+void exibir_estatisticas (Simulador *sim);
+// Registra um acesso à memória
+void registrar_acesso (Simulador *sim, int pid, int pagina, int tipo_acesso);
+
+//Simulação
+// Executa a simulação com uma sequência de acessos à memória
+void executar_simulacao (Simulador *sim ,int algoritmo);
+// Simula um acesso à memória
+int acessar_memoria (Simulador *sim, int pid, int endereco_virtual);
 
 #endif
