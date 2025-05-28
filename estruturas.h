@@ -8,7 +8,7 @@ typedef struct {
     int modificada; // 1 se a página foi modificada, 0 caso contrário
     int referenciada; // 1 se a página foi referenciada recentemente, 0 caso contrário
     int tempo_carga; // Instante em que a página foi carregada na memória
-    int ultimo_acesoo; // Instante do último acesso à página 
+    int ultimo_acesso; // Instante do último acesso à página 
 } Pagina;
 
 typedef struct {
@@ -41,7 +41,7 @@ typedef struct {
     int algoritmo;        // 0=FIFO , 1=LRU , 2= CLOCK , 3= RANDOM , 4= CUSTOM
 } Simulador;
 
-Simulador *inicializar_simulador(int tamanho_pagina, int tamanho_memoria_fisica);
+Simulador *inicializar_simulador(int tamanho_pagina, int tamanho_memoria_fisica, int algoritmo);
 Processo *criar_processo(Simulador *sim, int tamanho_processo, int pid);
 void exibir_memoria_fisica(Simulador *sim);
 
