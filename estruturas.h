@@ -56,15 +56,15 @@ void extrair_pagina_deslocamento ( Simulador *sim, int endereco_virtual, int *pa
 
 //Manipulação de Memória
 // Verifica se uma página está presente na memória física
-int verificar_pagina_presente (Simulador *sim, int pid, int pagina); // 3
+int verificar_pagina_presente (Simulador *sim, int pid, int pagina); // 3 - Leonardo
 // Carrega uma página na memória física
 // Retorna o número do frame onde a página foi carregada
-int carregar_pagina ( Simulador *sim, int pid, int pagina); // 4
-// Implementa o algoritmo de substituição de páginas FIFO // 5 
+int carregar_pagina ( Simulador *sim, int pid, int pagina); // 4 - Leonardo 
+// Implementa o algoritmo de substituição de páginas FIFO // 5 - Leonardo 
 int substituir_pagina_fifo (Simulador *sim); 
-// Implementa o algoritmo de substituição de páginas LRU
+// Implementa o algoritmo de substituição de páginas LRU 
 int substituir_pagina_lru (Simulador *sim);
-// Implementa o algoritmo de substituição de páginas CLOCK    // algum desses 6
+// Implementa o algoritmo de substituição de páginas CLOCK    // algum desses 6 - Leonardo
 int substituir_pagina_clock (Simulador *sim);
 // Implementa o algoritmo de substituição de páginas RANDOM
 int substituir_pagina_random (Simulador *sim);
@@ -73,14 +73,14 @@ int substituir_pagina_random (Simulador *sim);
 // Exibe o estado atual da memória física
 void exibir_memoria_fisica (Simulador *sim); // já feito
 // Exibe estatísticas da simulação
-void exibir_estatisticas (Simulador *sim); // 7
+void exibir_estatisticas (Simulador *sim); // 7 - Jully
 // Registra um acesso à memória
-void registrar_acesso (Simulador *sim, int pid, int pagina, int tipo_acesso); // 8
+void registrar_acesso (Simulador *sim, int pid, int pagina, int tipo_acesso); // 8 - Jully
 
 //Simulação
 // Executa a simulação com uma sequência de acessos à memória
-void executar_simulacao (Simulador *sim ,int algoritmo); // 9
+void executar_simulacao (Simulador *sim ,int algoritmo); // 9 - Jully
 // Simula um acesso à memória
-int acessar_memoria (Simulador *sim, int pid, int endereco_virtual); // 10
+int acessar_memoria (Simulador *sim, int pid, int endereco_virtual); // 10 - Jully
 
 #endif
