@@ -49,10 +49,10 @@ Processo *criar_processo(Simulador *sim, int tamanho_processo, int pid); // já 
 //Tradução de Endereços
 // Traduz um endereço virtual para físico
 // Retorna o endereço físico ou -1 em caso de page fault
-int traduzir_endereco(Simulador *sim, int pid, int endereco_virtual); // 1 
+int traduzir_endereco(Simulador *sim, int pid, int endereco_virtual); // feita
 
 // Extrai o número da página e o deslocamento de um endereço virtual
-void extrair_pagina_deslocamento ( Simulador *sim, int endereco_virtual, int *pagina ,int *deslocamento); // 2
+void extrair_pagina_deslocamento ( Simulador *sim, int endereco_virtual, int *pagina ,int *deslocamento); // feita
 
 //Manipulação de Memória
 // Verifica se uma página está presente na memória física
