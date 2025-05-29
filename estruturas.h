@@ -8,7 +8,7 @@ typedef struct {
     int modificada; // 1 se a página foi modificada, 0 caso contrário
     int referenciada; // 1 se a página foi referenciada recentemente, 0 caso contrário
     int tempo_carga; // Instante em que a página foi carregada na memória
-    int ultimo_acesso; // Instante do último acesso à página 
+    int ultimo_acesso; // Instante do último acesso à página
 } Pagina;
 
 typedef struct {
@@ -59,10 +59,10 @@ void extrair_pagina_deslocamento ( Simulador *sim, int endereco_virtual, int *pa
 int verificar_pagina_presente (Simulador *sim, int pid, int pagina); // 3 - Leonardo
 // Carrega uma página na memória física
 // Retorna o número do frame onde a página foi carregada
-int carregar_pagina ( Simulador *sim, int pid, int pagina); // 4 - Leonardo 
-// Implementa o algoritmo de substituição de páginas FIFO // 5 - Leonardo 
-int substituir_pagina_fifo (Simulador *sim); 
-// Implementa o algoritmo de substituição de páginas LRU 
+int carregar_pagina ( Simulador *sim, int pid, int pagina); // 4 - Leonardo
+// Implementa o algoritmo de substituição de páginas FIFO // 5 - Leonardo
+int substituir_pagina_fifo (Simulador *sim);
+// Implementa o algoritmo de substituição de páginas LRU
 int substituir_pagina_lru (Simulador *sim);
 // Implementa o algoritmo de substituição de páginas CLOCK    // algum desses 6 - Leonardo
 int substituir_pagina_clock (Simulador *sim);

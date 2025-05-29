@@ -1,8 +1,203 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
+#include <time.h>
+
 #include "estruturas.h"
 
-Simulador *inicializar_simulador(int tamanho_pagina, int tamanho_memoria_fisica, int algoritmo){
+// Função auxiliar para encontrar um processo pelo PID
+Processo* encontrar_processo(Simulador *sim, int pid) {
+    for (int i = 0; i < sim->num_processos; i++) {
+        if (sim->processos[i].pid == pid) {
+            return &sim->processos[i];
+        }
+    }
+    return NULL;
+}
+
+// Função para registrar um acesso à página
+void registrar_acesso(Simulador *sim, int pid, int pagina, int tipo_acesso) {
+    Processo *proc = encontrar_processo(sim, pid);
+    if (!proc) return;
+
+    if (pagina < 0 || pagina >= proc->num_paginas) return;
+
+    proc->tabela_paginas[pagina].referenciada = 1;
+    if (tipo_acesso == 1) { // Escrita
+        proc->tabela_paginas[pagina].modificada = 1;
+    }
+}
+
+// Função FIFO para substituição de página
+int substituir_pagina_fifo(Simulador *sim) {
+    int frame_mais_antigo = 0;
+    int tempo_mais_antigo = INT_MAX;
+
+    for (int i = 0; i < sim->memoria.num_frames; i++) {
+        if (sim->memoria.tempo_carga[i] < tempo_mais_antigo) {
+            tempo_mais_antigo = sim->memoria.tempo_carga[i];
+            frame_mais_antigo = i;
+        }
+    }
+
+    // Remove a página atual do frame
+    int conteudo = sim->memoria.frames[frame_mais_antigo];
+    int pid = conteudo >> 16;
+    int pagina = conteudo & 0xFFFF;
+
+    Processo *proc = encontrar_processo(sim, pid);
+    if (proc) {
+        proc->tabela_paginas[pagina].presente = 0;
+        proc->tabela_paginas[pagina].frame = -1;
+    }
+
+    return frame_mais_antigo;
+}
+
+// Função LRU para substituição de página
+int substituir_pagina_lru(Simulador *sim) {
+    int frame_lru = 0;
+    int tempo_mais_antigo = INT_MAX;
+
+    for (int i = 0; i < sim->memoria.num_frames; i++) {
+        int conteudo = sim->memoria.frames[i];
+        int pid = conteudo >> 16;
+        int pagina = conteudo & 0xFFFF;
+
+        Processo *proc = encontrar_processo(sim, pid);
+        if (proc && proc->tabela_paginas[pagina].ultimo_acesso < tempo_mais_antigo) {
+            tempo_mais_antigo = proc->tabela_paginas[pagina].ultimo_acesso;
+            frame_lru = i;
+        }
+    }
+
+    // Remove a página atual do frame
+    int conteudo = sim->memoria.frames[frame_lru];
+    int pid = conteudo >> 16;
+    int pagina = conteudo & 0xFFFF;
+
+    Processo *proc = encontrar_processo(sim, pid);
+    if (proc) {
+        proc->tabela_paginas[pagina].presente = 0;
+        proc->tabela_paginas[pagina].frame = -1;
+    }
+
+    return frame_lru;
+}
+
+// Função CLOCK para substituição de página
+int substituir_pagina_clock(Simulador *sim) {
+    static int ponteiro = 0; // Mantém a posição entre chamadas
+
+    while (1) {
+        int conteudo = sim->memoria.frames[ponteiro];
+        int pid = conteudo >> 16;
+        int pagina = conteudo & 0xFFFF;
+
+        Processo *proc = encontrar_processo(sim, pid);
+        if (proc) {
+            if (proc->tabela_paginas[pagina].referenciada) {
+                // Dá uma segunda chance
+                proc->tabela_paginas[pagina].referenciada = 0;
+            } else {
+                // Remove esta página
+                proc->tabela_paginas[pagina].presente = 0;
+                proc->tabela_paginas[pagina].frame = -1;
+                int frame_selecionado = ponteiro;
+                ponteiro = (ponteiro + 1) % sim->memoria.num_frames;
+                return frame_selecionado;
+            }
+        }
+
+        ponteiro = (ponteiro + 1) % sim->memoria.num_frames;
+    }
+}
+
+// Função RANDOM para substituição de página
+int substituir_pagina_random(Simulador *sim) {
+    int frame_aleatorio = rand() % sim->memoria.num_frames;
+
+    // Remove a página atual do frame
+    int conteudo = sim->memoria.frames[frame_aleatorio];
+    int pid = conteudo >> 16;
+    int pagina = conteudo & 0xFFFF;
+
+    Processo *proc = encontrar_processo(sim, pid);
+    if (proc) {
+        proc->tabela_paginas[pagina].presente = 0;
+        proc->tabela_paginas[pagina].frame = -1;
+    }
+
+    return frame_aleatorio;
+}
+
+// Função para tradução de endereço
+int traduzir_endereco(Simulador *sim, int pid, int endereco_virtual) {
+    sim->total_acessos++;
+
+    int pagina, deslocamento;
+    extrair_pagina_deslocamento(sim, endereco_virtual, &pagina, &deslocamento);
+
+    Processo *proc = encontrar_processo(sim, pid);
+    if (!proc) return -1; // Processo não encontrado
+
+    // Verifica se a página é válida
+    if (pagina < 0 || pagina >= proc->num_paginas) {
+        return -1; // Página inválida
+    }
+
+    if (proc->tabela_paginas[pagina].presente) {
+        registrar_acesso(sim, pid, pagina, 0); // Tipo de acesso: leitura
+        proc->tabela_paginas[pagina].ultimo_acesso = sim->tempo_atual;
+        return proc->tabela_paginas[pagina].frame * sim->tamanho_pagina + deslocamento;
+    }
+
+    // Page fault
+    sim->page_faults++;
+
+    int frame;
+    switch (sim->algoritmo) {
+        case 0:
+            frame = substituir_pagina_fifo(sim);
+            break;
+        case 1:
+            frame = substituir_pagina_lru(sim);
+            break;
+        case 2:
+            frame = substituir_pagina_clock(sim);
+            break;
+        case 3:
+            frame = substituir_pagina_random(sim);
+            break;
+        default:
+            printf("Algoritmo inválido. Usando FIFO como padrão.\n");
+            frame = substituir_pagina_fifo(sim);
+    }
+
+    // Atualiza a memória física
+    sim->memoria.frames[frame] = (pid << 16) | pagina;
+    sim->memoria.tempo_carga[frame] = sim->tempo_atual;
+
+    // Atualiza a tabela de páginas do processo
+    proc->tabela_paginas[pagina].presente = 1;
+    proc->tabela_paginas[pagina].frame = frame;
+    proc->tabela_paginas[pagina].tempo_carga = sim->tempo_atual;
+    proc->tabela_paginas[pagina].ultimo_acesso = sim->tempo_atual;
+    proc->tabela_paginas[pagina].referenciada = 1; // Página foi referenciada ao ser carregada
+
+    registrar_acesso(sim, pid, pagina, 1); // Tipo de acesso: escrita
+
+    return frame * sim->tamanho_pagina + deslocamento;
+}
+
+// Função para extrair página e deslocamento
+void extrair_pagina_deslocamento(Simulador *sim, int endereco_virtual, int *pagina, int *deslocamento) {
+    *pagina = endereco_virtual / sim->tamanho_pagina;
+    *deslocamento = endereco_virtual % sim->tamanho_pagina;
+}
+
+// Função para inicializar o simulador (já implementada)
+Simulador *inicializar_simulador(int tamanho_pagina, int tamanho_memoria_fisica, int algoritmo) {
     Simulador *sim = malloc(sizeof(Simulador));
     sim->tempo_atual = 0;
     sim->tamanho_pagina = tamanho_pagina;
@@ -26,7 +221,8 @@ Simulador *inicializar_simulador(int tamanho_pagina, int tamanho_memoria_fisica,
     return sim;
 }
 
-Processo *criar_processo(Simulador *sim, int tamanho_processo, int pid){
+// Função para criar um processo (já implementada)
+Processo *criar_processo(Simulador *sim, int tamanho_processo, int pid) {
     sim->num_processos++;
     sim->processos = realloc(sim->processos, sizeof(Processo) * sim->num_processos);
 
@@ -48,69 +244,7 @@ Processo *criar_processo(Simulador *sim, int tamanho_processo, int pid){
     return proc;
 }
 
-void extrair_pagina_deslocamento ( Simulador *sim, int endereco_virtual, int *pagina ,int *deslocamento){
-    *pagina = endereco_virtual / sim->tamanho_pagina;
-    *deslocamento = endereco_virtual & sim->tamanho_pagina;
-}
-
-int traduzir_endereco(Simulador *sim, int pid, int endereco_virtual){
-    sim->total_acessos++;
-
-    int pagina, deslocamento;
-
-    extrair_pagina_deslocamento(sim, endereco_virtual, &pagina, &deslocamento);
-
-    Processo *proc = NULL;
-    for (int i = 0; i < sim->num_processos; i++){
-        if(sim->num_processos[i].pid == pid){
-            proc = &sim->processos;
-            break;
-        }
-    }
-
-    if(!proc) return -1; // processo n encontrado.
-
-    if(proc->tabela_paginas[pagina].presente){
-        registrar_acesso(sim, pid, pagina, 0); // tipo_acesso = leitura
-        proc->tabela_paginas[pagina].ultimo_acesso = sim->tempo_atual;
-        return proc->tabela_paginas[pagina].frame * sim->tamanho_pagina + deslocamento;
-    }
-
-    //page fault
-    sim->page_faults++;
-    
-    int frame;
-    switch (sim->algoritmo)
-    {
-    case 0:
-        frame = substituir_pagina_fifo(sim);
-        break;
-    case 1: 
-        frame = substituir_pagina_lru(sim);
-        break;
-    default:
-        printf("Opção Inválida. Usaremos como padrão o FIFO");
-        frame = substituir_pagina_fifo(sim);
-    }
-
-    sim->memoria.frames[frame] = (pid << 16) | pagina;
-    sim->memoria.tempo_carga[frame] = sim->tempo_atual;
-
-    // Atualizar a tabela de páginas do processo
-    proc->tabela_paginas[pagina].presente = 1;
-    proc->tabela_paginas[pagina].frame = frame;
-    proc->tabela_paginas[pagina].tempo_carga = sim->tempo_atual;
-    proc->tabela_paginas[pagina].ultimo_acesso = sim->tempo_atual;
-
-    registrar_acesso(sim, pid, pagina, 1); // tipo_acesso = escrita (por substituição)
-
-    return frame * sim->tamanho_pagina + deslocamento;   
-}
-
-int substituir_pagina_fifo (Simulador *sim){
-    
-}
-
+// Função para exibir a memória física
 void exibir_memoria_fisica(Simulador *sim) {
     printf("Estado da Memória Física:\n");
     for (int i = 0; i < sim->memoria.num_frames; i++) {
