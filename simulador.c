@@ -104,7 +104,10 @@ int traduzir_endereco(Simulador *sim, int pid, int endereco_virtual){
 
     registrar_acesso(sim, pid, pagina, 1); // tipo_acesso = escrita (por substituição)
 
-    return frame * sim->tamanho_pagina + deslocamento;
+    return frame * sim->tamanho_pagina + deslocamento;   
+}
+
+int substituir_pagina_fifo (Simulador *sim){
     
 }
 
