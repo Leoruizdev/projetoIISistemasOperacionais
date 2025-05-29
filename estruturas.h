@@ -42,45 +42,45 @@ typedef struct {
 } Simulador;
 
 // Inicialização
-Simulador *inicializar_simulador(int tamanho_pagina, int tamanho_memoria_fisica, int algoritmo);
-Processo *criar_processo(Simulador *sim, int tamanho_processo, int pid);
+Simulador *inicializar_simulador(int tamanho_pagina, int tamanho_memoria_fisica, int algoritmo); // já feito
+Processo *criar_processo(Simulador *sim, int tamanho_processo, int pid); // já feito
 
 
 //Tradução de Endereços
 // Traduz um endereço virtual para físico
 // Retorna o endereço físico ou -1 em caso de page fault
-int traduzir_endereco(Simulador *sim, int pid, int endereco_virtual);
+int traduzir_endereco(Simulador *sim, int pid, int endereco_virtual); // 1 
 
 // Extrai o número da página e o deslocamento de um endereço virtual
-void extrair_pagina_deslocamento ( Simulador *sim, int endereco_virtual, int *pagina ,int *deslocamento);
+void extrair_pagina_deslocamento ( Simulador *sim, int endereco_virtual, int *pagina ,int *deslocamento); // 2
 
 //Manipulação de Memória
 // Verifica se uma página está presente na memória física
-int verificar_pagina_presente (Simulador *sim, int pid, int pagina);
+int verificar_pagina_presente (Simulador *sim, int pid, int pagina); // 3
 // Carrega uma página na memória física
 // Retorna o número do frame onde a página foi carregada
-int carregar_pagina ( Simulador *sim, int pid, int pagina);
-// Implementa o algoritmo de substituição de páginas FIFO
-int substituir_pagina_fifo (Simulador *sim);
+int carregar_pagina ( Simulador *sim, int pid, int pagina); // 4
+// Implementa o algoritmo de substituição de páginas FIFO // 5 
+int substituir_pagina_fifo (Simulador *sim); 
 // Implementa o algoritmo de substituição de páginas LRU
 int substituir_pagina_lru (Simulador *sim);
-// Implementa o algoritmo de substituição de páginas CLOCK
+// Implementa o algoritmo de substituição de páginas CLOCK    // algum desses 6
 int substituir_pagina_clock (Simulador *sim);
 // Implementa o algoritmo de substituição de páginas RANDOM
 int substituir_pagina_random (Simulador *sim);
 
 //Estatísticas e Visualização
 // Exibe o estado atual da memória física
-void exibir_memoria_fisica (Simulador *sim);
+void exibir_memoria_fisica (Simulador *sim); // já feito
 // Exibe estatísticas da simulação
-void exibir_estatisticas (Simulador *sim);
+void exibir_estatisticas (Simulador *sim); // 7
 // Registra um acesso à memória
-void registrar_acesso (Simulador *sim, int pid, int pagina, int tipo_acesso);
+void registrar_acesso (Simulador *sim, int pid, int pagina, int tipo_acesso); // 8
 
 //Simulação
 // Executa a simulação com uma sequência de acessos à memória
-void executar_simulacao (Simulador *sim ,int algoritmo);
+void executar_simulacao (Simulador *sim ,int algoritmo); // 9
 // Simula um acesso à memória
-int acessar_memoria (Simulador *sim, int pid, int endereco_virtual);
+int acessar_memoria (Simulador *sim, int pid, int endereco_virtual); // 10
 
 #endif
