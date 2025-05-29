@@ -190,11 +190,55 @@ int traduzir_endereco(Simulador *sim, int pid, int endereco_virtual) {
     return frame * sim->tamanho_pagina + deslocamento;
 }
 
+
 // Função para extrair página e deslocamento
 void extrair_pagina_deslocamento(Simulador *sim, int endereco_virtual, int *pagina, int *deslocamento) {
     *pagina = endereco_virtual / sim->tamanho_pagina;
     *deslocamento = endereco_virtual % sim->tamanho_pagina;
 }
+
+int verificar_pagina_presente(Simulador *sim, int pid, int pagina) {
+    Processo *proc = encontrar_processo(sim, pid);
+    if (!proc || pagina < 0 || pagina >= proc->num_paginas) return 0;
+    return proc->tabela_paginas[pagina].presente;
+}
+
+int carregar_pagina(Simulador *sim, int pid, int pagina) {
+    int frame = -1;
+
+    // Verifica se há frame livre
+    for (int i = 0; i < sim->memoria.num_frames; i++) {
+        if (sim->memoria.frames[i] == -1) {
+            frame = i;
+            break;
+        }
+    }
+
+    // Se não houver, aplica substituição
+    if (frame == -1) {
+        switch (sim->algoritmo) {
+            case 0: frame = substituir_pagina_fifo(sim); break;
+            case 1: frame = substituir_pagina_lru(sim); break;
+            case 2: frame = substituir_pagina_clock(sim); break;
+            case 3: frame = substituir_pagina_random(sim); break;
+            default: frame = substituir_pagina_fifo(sim); break;
+        }
+    }
+
+    // Atualiza estruturas
+    sim->memoria.frames[frame] = (pid << 16) | pagina;
+    sim->memoria.tempo_carga[frame] = sim->tempo_atual;
+
+    Processo *proc = encontrar_processo(sim, pid);
+    proc->tabela_paginas[pagina].presente = 1;
+    proc->tabela_paginas[pagina].frame = frame;
+    proc->tabela_paginas[pagina].tempo_carga = sim->tempo_atual;
+    proc->tabela_paginas[pagina].ultimo_acesso = sim->tempo_atual;
+    proc->tabela_paginas[pagina].referenciada = 1;
+
+    return frame;
+}
+
 
 // Função para inicializar o simulador (já implementada)
 Simulador *inicializar_simulador(int tamanho_pagina, int tamanho_memoria_fisica, int algoritmo) {
@@ -243,6 +287,31 @@ Processo *criar_processo(Simulador *sim, int tamanho_processo, int pid) {
 
     return proc;
 }
+
+void executar_simulacao(Simulador *sim, int algoritmo) {
+    for (int i = 0; i < sim->num_processos; i++) {
+        simular_acessos(sim, sim->processos[i].pid, 10);
+    }
+    exibir_memoria_fisica(sim);
+    exibir_estatisticas(sim);
+}
+
+int acessar_memoria(Simulador *sim, int pid, int endereco_virtual) {
+    int pagina, deslocamento;
+    extrair_pagina_deslocamento(sim, endereco_virtual, &pagina, &deslocamento);
+
+    if (!verificar_pagina_presente(sim, pid, pagina)) {
+        carregar_pagina(sim, pid, pagina);
+        sim->page_faults++;
+    }
+
+    registrar_acesso(sim, pid, pagina, 0);
+    Processo *proc = encontrar_processo(sim, pid);
+    proc->tabela_paginas[pagina].ultimo_acesso = sim->tempo_atual;
+
+    return proc->tabela_paginas[pagina].frame * sim->tamanho_pagina + deslocamento;
+}
+
 
 // Função para exibir a memória física
 void exibir_memoria_fisica(Simulador *sim) {
