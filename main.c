@@ -30,12 +30,12 @@ int main() {
 
     printf("\n=== Estado final da memória ===\n");
     exibir_memoria_fisica(sim);
+  
 
     printf("\n=== Estatísticas da simulação ===\n");
     exibir_estatisticas(sim);
 
     // Libera memória alocada
-    // (Você precisaria implementar uma função liberar_simulador())
 
     liberar_simulador(sim);
 
@@ -92,3 +92,5 @@ void exibir_estatisticas(Simulador *sim) {
                carregadas, sim->processos[i].num_paginas);
     }
 }
+
+

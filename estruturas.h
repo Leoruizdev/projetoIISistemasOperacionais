@@ -56,7 +56,7 @@ void extrair_pagina_deslocamento ( Simulador *sim, int endereco_virtual, int *pa
 
 //Manipulação de Memória
 // Verifica se uma página está presente na memória física
-int verificar_pagina_presente (Simulador *sim, int pid, int pagina); // 3 - Leonardo
+int verificar_pagina_presente (Simulador *sim, int pid, int pagina); 
 // Carrega uma página na memória física
 // Retorna o número do frame onde a página foi carregada
 int carregar_pagina ( Simulador *sim, int pid, int pagina); // 4 - Leonardo
