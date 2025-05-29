@@ -83,4 +83,5 @@ void executar_simulacao (Simulador *sim ,int algoritmo); // 9 - Jully
 // Simula um acesso à memória
 int acessar_memoria (Simulador *sim, int pid, int endereco_virtual); // 10 - Jully
 
+void liberar_simulador(Simulador *sim);
 #endif

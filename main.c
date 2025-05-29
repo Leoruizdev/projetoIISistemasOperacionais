@@ -37,6 +37,7 @@ int main() {
     // Libera memória alocada
     // (Você precisaria implementar uma função liberar_simulador())
 
+    liberar_simulador(sim);
 
     return 0;
 }

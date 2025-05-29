@@ -326,3 +326,14 @@ void exibir_memoria_fisica(Simulador *sim) {
         }
     }
 }
+
+void liberar_simulador(Simulador *sim) {
+    for (int i = 0; i < sim->num_processos; i++) {
+        free(sim->processos[i].tabela_paginas);
+    }
+    free(sim->processos);
+    free(sim->memoria.frames);
+    free(sim->memoria.tempo_carga);
+    free(sim);
+}
+
