@@ -85,52 +85,6 @@ int substituir_pagina_lru(Simulador *sim) {
     return frame_lru;
 }
 
-// Função CLOCK para substituição de página
-int substituir_pagina_clock(Simulador *sim) {
-    static int ponteiro = 0; // Mantém a posição entre chamadas
-
-    while (1) {
-        int conteudo = sim->memoria.frames[ponteiro];
-        int pid = conteudo >> 16;
-        int pagina = conteudo & 0xFFFF;
-
-        Processo *proc = encontrar_processo(sim, pid);
-        if (proc) {
-            if (proc->tabela_paginas[pagina].referenciada) {
-                // Dá uma segunda chance
-                proc->tabela_paginas[pagina].referenciada = 0;
-            } else {
-                // Remove esta página
-                proc->tabela_paginas[pagina].presente = 0;
-                proc->tabela_paginas[pagina].frame = -1;
-                int frame_selecionado = ponteiro;
-                ponteiro = (ponteiro + 1) % sim->memoria.num_frames;
-                return frame_selecionado;
-            }
-        }
-
-        ponteiro = (ponteiro + 1) % sim->memoria.num_frames;
-    }
-}
-
-// Função RANDOM para substituição de página
-int substituir_pagina_random(Simulador *sim) {
-    int frame_aleatorio = rand() % sim->memoria.num_frames;
-
-    // Remove a página atual do frame
-    int conteudo = sim->memoria.frames[frame_aleatorio];
-    int pid = conteudo >> 16;
-    int pagina = conteudo & 0xFFFF;
-
-    Processo *proc = encontrar_processo(sim, pid);
-    if (proc) {
-        proc->tabela_paginas[pagina].presente = 0;
-        proc->tabela_paginas[pagina].frame = -1;
-    }
-
-    return frame_aleatorio;
-}
-
 // Função para tradução de endereço
 int traduzir_endereco(Simulador *sim, int pid, int endereco_virtual) {
     sim->total_acessos++;
@@ -162,12 +116,6 @@ int traduzir_endereco(Simulador *sim, int pid, int endereco_virtual) {
             break;
         case 1:
             frame = substituir_pagina_lru(sim);
-            break;
-        case 2:
-            frame = substituir_pagina_clock(sim);
-            break;
-        case 3:
-            frame = substituir_pagina_random(sim);
             break;
         default:
             printf("Algoritmo inválido. Usando FIFO como padrão.\n");

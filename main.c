@@ -11,7 +11,7 @@ int main() {
     srand(time(NULL)); // Inicializa semente para números aleatórios
 
     int alg;
-    printf("Escolha o algoritmo (0=FIFO, 1=LRU, 2=CLOCK, 3=RANDOM): ");
+    printf("Escolha o algoritmo (0=FIFO, 1=LRU: ");
     scanf("%d", &alg);
 
     // Inicializa simulador: 4KB página, 16KB memória (4 frames)
@@ -35,8 +35,9 @@ int main() {
     printf("\n=== Estatísticas da simulação ===\n");
     exibir_estatisticas(sim);
 
+    
+    
     // Libera memória alocada
-
     liberar_simulador(sim);
 
     return 0;
