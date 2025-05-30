@@ -16,5 +16,6 @@ plt.xlabel("Algoritmo")
 plt.ylabel("Page Faults")
 plt.grid(axis='y')
 plt.tight_layout()
-plt.savefig("comparacao_algoritmos.png")
-plt.show()
+plt.savefig("grafico_resultados.png")
+print("Gráfico salvo como 'grafico_resultados.png'")
+
