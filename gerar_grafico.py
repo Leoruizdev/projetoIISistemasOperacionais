@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 df = pd.read_csv("resultados.csv", header=None, names=["Algoritmo", "Acessos", "PageFaults"])
 
 # Mapeia códigos de algoritmo para nomes
-nomes = {0: "FIFO", 1: "LRU", 2: "CLOCK", 3: "RANDOM"}
+nomes = {0: "FIFO", 1: "LRU"}
 df["Nome"] = df["Algoritmo"].map(nomes)
 
 # Cria gráfico de barras
