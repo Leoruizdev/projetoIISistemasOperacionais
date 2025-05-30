@@ -35,10 +35,22 @@ int main() {
     printf("\n=== Estatísticas da simulação ===\n");
     exibir_estatisticas(sim);
 
-    
-    
+    // === Grava os resultados em CSV ===
+    FILE *arquivo = fopen("resultados.csv", "a");
+    if (arquivo != NULL) {
+        fprintf(arquivo, "%d,%d,%d\n", sim->algoritmo, sim->total_acessos, sim->page_faults);
+        fclose(arquivo);
+    } else {
+        printf("Erro ao abrir o arquivo resultados.csv\n");
+}
+
+
     // Libera memória alocada
     liberar_simulador(sim);
+
+ 
+
+
 
     return 0;
 }
