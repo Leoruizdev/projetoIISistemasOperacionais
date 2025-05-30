@@ -11,8 +11,6 @@ Este projeto simula o gerenciamento de memória por paginação, com suporte a m
 - Implementação de 4 algoritmos de substituição de páginas:
   - FIFO
   - LRU
-  - CLOCK
-  - RANDOM
 - Estatísticas detalhadas da simulação
 
 ## 📁 Estrutura do Projeto
@@ -53,7 +51,7 @@ gcc main.c simulador.c -o simulador
 ## 📊 Exemplo de Saída
 
 ```txt
-Escolha o algoritmo (0=FIFO, 1=LRU, 2=CLOCK, 3=RANDOM): 1
+Escolha o algoritmo (0=FIFO, 1=LRU): 1
 
 === Estado inicial da memória ===
 Frame 0: [ LIVRE ]
